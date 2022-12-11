@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import File exposing (File)
-import Geolocation exposing (Location, watchPosition)
+import Geolocation exposing (Coordinates, watchPosition)
 import Html exposing (Html, div, img, input, label, text)
 import Html.Attributes exposing (accept, attribute, hidden, src, style, type_)
 import Html.Events exposing (on)
@@ -20,14 +20,14 @@ type alias LocalRippleImage =
 
 type alias Model =
     { localRipple : Maybe LocalRippleImage
-    , location : Maybe Location
+    , location : Maybe Coordinates
     }
 
 
 type Msg
     = SetLocalRippleImage File
     | SetLocalRippleImagePreview File ImagePreviewUrl
-    | GotLocation Location
+    | GotLocation Coordinates
 
 
 main : Program () Model Msg

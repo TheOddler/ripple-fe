@@ -1,31 +1,20 @@
 port module Geolocation exposing (..)
 
--- import Time exposing (Posix)
+
+type alias Latitude =
+    Float
 
 
-type alias Location =
-    { latitude : Float
-    , longitude : Float
-    , accuracy : Float
-    , altitude : Maybe Altitude
-    , movement : Maybe Movement
+type alias Longitude =
+    Float
 
-    -- , timestamp : Posix
+
+type alias Coordinates =
+    { latitude : Latitude
+    , longitude : Longitude
     }
 
 
-type alias Altitude =
-    { metersAboveSeaLevel : Float
-    , accuracy : Float
-    }
-
-
-type alias Movement =
-    { speed : Float
-
-    -- The heading as degrees clockwise from North
-    , heading : Float
-    }
-
-
-port watchPosition : (Location -> msg) -> Sub msg
+{-| watchPosition matches the javascript name of the function
+-}
+port watchPosition : (Coordinates -> msg) -> Sub msg
