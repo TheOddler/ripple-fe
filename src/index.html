@@ -33,6 +33,35 @@
 			node: document.getElementById('elm')
 		});
 
+		navigator.geolocation.watchPosition(locationRaw => {
+			const coords = locationRaw.coords;
+			let location = {
+				latitude: coords.latitude,
+				longitude: coords.longitude,
+				accuracy: coords.accuracy,
+			};
+
+			if (coords.altitude && coords.altitudeAccuracy) {
+				location.altitude = {
+					metersAboveSeaLevel: coords.altitude,
+					accuracy: coords.altitudeAccuracy
+				};
+			} else {
+				location.altitude = null;
+			}
+
+			if (coords.speed && coords.heading) {
+				location.movement = {
+					speed: coords.speed,
+					heading: coords.heading
+				};
+			} else {
+				location.movement = null;
+			}
+
+			app.ports.watchPosition.send(location);
+		});
+
 		// app.ports.saveLocalStorage.subscribe(function (message) {
 		// 	localStorage.setItem(message.key, message.value);
 		// });

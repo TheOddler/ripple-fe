@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import File exposing (File)
+import Geolocation exposing (Location, watchPosition)
 import Html exposing (Html, div, img, input, label, text)
 import Html.Attributes exposing (accept, attribute, hidden, src, style, type_)
 import Html.Events exposing (on)
@@ -19,12 +20,14 @@ type alias LocalRippleImage =
 
 type alias Model =
     { localRipple : Maybe LocalRippleImage
+    , location : Maybe Location
     }
 
 
 type Msg
     = SetLocalRippleImage File
     | SetLocalRippleImagePreview File ImagePreviewUrl
+    | GotLocation Location
 
 
 main : Program () Model Msg
@@ -39,14 +42,14 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { localRipple = Nothing }
+    ( { localRipple = Nothing, location = Nothing }
     , Cmd.none
     )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    watchPosition GotLocation
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,12 +65,26 @@ update msg model =
             , Cmd.none
             )
 
+        GotLocation location ->
+            ( { model | location = Just location }
+            , Cmd.none
+            )
+
 
 view : Model -> Html Msg
 view model =
     div
         []
-        [ text "Hello test"
+        [ case model.location of
+            Nothing ->
+                text "No location found"
+
+            Just location ->
+                text <|
+                    "Location: "
+                        ++ String.fromFloat location.longitude
+                        ++ " - "
+                        ++ String.fromFloat location.latitude
         , viewMakeRippleButton
             Select
             SetLocalRippleImage
