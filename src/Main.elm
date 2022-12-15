@@ -4,22 +4,21 @@ import Browser
 import Coordinates exposing (Coordinates)
 import CreateRipple
 import Html exposing (Html, div, text)
-import Http
+import NearbyRipples
 import Ports exposing (watchPosition)
-import Ripple exposing (Ripple)
 
 
 type alias Model =
     { location : Coordinates
     , createRipple : CreateRipple.Model
-    , remoteRipples : List Ripple
+    , nearbyRipples : NearbyRipples.Model
     }
 
 
 type Msg
-    = CreateRippleMsg CreateRipple.Msg
-    | GotLocation Coordinates
-    | GotRipples (Result Http.Error (List Ripple))
+    = GotLocation Coordinates
+    | CreateRippleMsg CreateRipple.Msg
+    | NearbyRipplesMsg NearbyRipples.Msg
 
 
 type alias Flags =
@@ -37,18 +36,13 @@ main =
         }
 
 
-initModel : Flags -> Model
-initModel flags =
-    { createRipple = CreateRipple.initModel
-    , location = flags.startLocation
-    , remoteRipples = []
-    }
-
-
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( initModel flags
-    , Ripple.getList GotRipples flags.startLocation
+    ( { location = flags.startLocation
+      , createRipple = CreateRipple.initModel
+      , nearbyRipples = NearbyRipples.initModel
+      }
+    , Cmd.map NearbyRipplesMsg <| NearbyRipples.initCmd flags.startLocation
     )
 
 
@@ -60,6 +54,11 @@ subscriptions _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
+        GotLocation location ->
+            ( { model | location = location }
+            , Cmd.none
+            )
+
         CreateRippleMsg msg ->
             let
                 ( newModel, cmd ) =
@@ -69,20 +68,14 @@ update message model =
             , Cmd.map CreateRippleMsg cmd
             )
 
-        GotLocation location ->
-            ( { model | location = location }
-            , Cmd.none
+        NearbyRipplesMsg msg ->
+            let
+                ( newModel, cmd ) =
+                    NearbyRipples.update model.location msg model.nearbyRipples
+            in
+            ( { model | nearbyRipples = newModel }
+            , Cmd.map NearbyRipplesMsg cmd
             )
-
-        GotRipples errOrRipples ->
-            case errOrRipples of
-                Err _ ->
-                    ( model, Cmd.none )
-
-                Ok ripples ->
-                    ( { model | remoteRipples = ripples }
-                    , Cmd.none
-                    )
 
 
 view : Model -> Html Msg
@@ -91,7 +84,5 @@ view model =
         []
         [ text <| "Location: " ++ Coordinates.toString model.location
         , Html.map CreateRippleMsg <| CreateRipple.view model.createRipple
-        , text "Ripples:"
-        , div [] <|
-            List.map Ripple.view model.remoteRipples
+        , Html.map NearbyRipplesMsg <| NearbyRipples.view model.nearbyRipples
         ]

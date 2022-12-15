@@ -16,15 +16,15 @@ type alias ImagePreviewUrl =
     String
 
 
-initModel : Model
-initModel =
-    Nothing
-
-
 type Model
     = Nothing
     | LoadingPreview File
     | Ready File ImagePreviewUrl
+
+
+initModel : Model
+initModel =
+    Nothing
 
 
 type Msg
