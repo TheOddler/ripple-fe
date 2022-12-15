@@ -2,7 +2,7 @@ module Ripple exposing (..)
 
 import Coordinates exposing (Coordinates)
 import Html exposing (Html, div, img, text)
-import Html.Attributes exposing (src)
+import Html.Attributes exposing (height, src)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Server
@@ -43,6 +43,9 @@ view ripple =
                 ++ String.fromFloat ripple.coordinates.longitude
                 ++ " - "
                 ++ String.fromFloat ripple.coordinates.latitude
-        , img [ src <| Url.toString <| Server.imgUrl ripple.id ]
+        , img
+            [ height 200
+            , src <| Url.toString <| Server.imgUrl ripple.id
+            ]
             []
         ]

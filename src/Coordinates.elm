@@ -1,4 +1,4 @@
-module Coordinates exposing (..)
+module Coordinates exposing (Coordinates, decoder, toJSON)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode

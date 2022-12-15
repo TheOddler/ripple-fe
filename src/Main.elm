@@ -10,8 +10,8 @@ import Ripple exposing (Ripple)
 
 
 type alias Model =
-    { createRipple : CreateRipple.Model
-    , location : Maybe Coordinates
+    { location : Coordinates
+    , createRipple : CreateRipple.Model
     , remoteRipples : List Ripple
     }
 
@@ -23,7 +23,8 @@ type Msg
 
 
 type alias Flags =
-    ()
+    { startLocation : Coordinates
+    }
 
 
 main : Program Flags Model Msg
@@ -36,18 +37,18 @@ main =
         }
 
 
-initModel : Model
-initModel =
+initModel : Flags -> Model
+initModel flags =
     { createRipple = CreateRipple.initModel
-    , location = Nothing
+    , location = flags.startLocation
     , remoteRipples = []
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
-    ( initModel
-    , Ripple.getList GotRipples { longitude = 0, latitude = 0 }
+init flags =
+    ( initModel flags
+    , Ripple.getList GotRipples flags.startLocation
     )
 
 
@@ -62,14 +63,14 @@ update message model =
         CreateRippleMsg msg ->
             let
                 ( newModel, cmd ) =
-                    CreateRipple.update msg model.createRipple
+                    CreateRipple.update model.location msg model.createRipple
             in
             ( { model | createRipple = newModel }
             , Cmd.map CreateRippleMsg cmd
             )
 
         GotLocation location ->
-            ( { model | location = Just location }
+            ( { model | location = location }
             , Cmd.none
             )
 
@@ -88,16 +89,11 @@ view : Model -> Html Msg
 view model =
     div
         []
-        [ case model.location of
-            Nothing ->
-                text "No location found"
-
-            Just location ->
-                text <|
-                    "Location: "
-                        ++ String.fromFloat location.longitude
-                        ++ " - "
-                        ++ String.fromFloat location.latitude
+        [ text <|
+            "Location: "
+                ++ String.fromFloat model.location.longitude
+                ++ " - "
+                ++ String.fromFloat model.location.latitude
         , Html.map CreateRippleMsg <| CreateRipple.view model.createRipple
         , text "Ripples:"
         , div [] <|

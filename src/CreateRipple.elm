@@ -1,5 +1,6 @@
 module CreateRipple exposing (..)
 
+import Coordinates exposing (Coordinates)
 import File exposing (File)
 import Html exposing (Html, button, div, img, input, label, text)
 import Html.Attributes exposing (accept, attribute, height, hidden, name, src, style, type_)
@@ -33,8 +34,8 @@ type Msg
     | UploadDone (Result Http.Error ())
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Coordinates -> Msg -> Model -> ( Model, Cmd Msg )
+update location msg model =
     case msg of
         SetImage image ->
             ( LoadingPreview image
@@ -52,8 +53,8 @@ update msg model =
                 { url = Url.toString Server.upload
                 , body =
                     Http.multipartBody
-                        [ Http.stringPart "latitude" "0"
-                        , Http.stringPart "longitude" "0"
+                        [ Http.stringPart "latitude" <| String.fromFloat location.latitude
+                        , Http.stringPart "longitude" <| String.fromFloat location.longitude
                         , Http.filePart "image" image
                         ]
                 , expect = Http.expectWhatever UploadDone
