@@ -11,7 +11,6 @@ import Json.Decode as D
 import Ports exposing (watchPosition)
 import Ripple exposing (Ripple)
 import Task
-import Url exposing (Url)
 
 
 type alias ImagePreviewUrl =

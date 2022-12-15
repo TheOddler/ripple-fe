@@ -1,8 +1,8 @@
 module Ripple exposing (..)
 
 import Coordinates exposing (Coordinates)
-import Html exposing (Html, div, img, input, label, text)
-import Html.Attributes exposing (accept, attribute, hidden, src, style, type_)
+import Html exposing (Html, div, img, text)
+import Html.Attributes exposing (src)
 import Http
 import Json.Decode as Decode exposing (Decoder)
 import Server
