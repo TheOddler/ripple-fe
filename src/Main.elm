@@ -48,7 +48,10 @@ init flags =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    watchPosition GotLocation
+    Sub.batch
+        [ watchPosition GotLocation
+        , Sub.map NearbyRipplesMsg NearbyRipples.subscriptions
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

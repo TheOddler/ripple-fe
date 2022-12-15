@@ -7,6 +7,7 @@ import Http
 import Json.Decode as Decode
 import Ripple exposing (Ripple)
 import Server
+import Time
 import Url
 
 
@@ -27,10 +28,21 @@ initCmd startLocation =
 
 type Msg
     = GotRipples (Result Http.Error (List Ripple))
+    | RefreshRipples
+
+
+seconds : Float
+seconds =
+    1000
+
+
+subscriptions : Sub Msg
+subscriptions =
+    Time.every (10 * seconds) (\_ -> RefreshRipples)
 
 
 update : Coordinates -> Msg -> Model -> ( Model, Cmd Msg )
-update _ msg model =
+update location msg model =
     case msg of
         GotRipples errOrRipples ->
             case errOrRipples of
@@ -41,6 +53,9 @@ update _ msg model =
                     ( { model | nearbyRipples = ripples }
                     , Cmd.none
                     )
+
+        RefreshRipples ->
+            ( model, getList GotRipples location )
 
 
 view : Model -> Html Msg
