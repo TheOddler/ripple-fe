@@ -1,8 +1,8 @@
 module CreateRipple exposing (..)
 
 import File exposing (File)
-import Html exposing (Html, button, div, form, img, input, label, text)
-import Html.Attributes exposing (accept, action, attribute, height, hidden, name, src, style, type_)
+import Html exposing (Html, button, div, img, input, label, text)
+import Html.Attributes exposing (accept, attribute, height, hidden, name, src, style, type_)
 import Html.Events exposing (on, onClick)
 import Http
 import Json.Decode as D
