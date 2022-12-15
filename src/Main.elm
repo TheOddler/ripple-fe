@@ -1,13 +1,17 @@
 module Main exposing (..)
 
 import Browser
+import Coordinates exposing (Coordinates)
 import File exposing (File)
-import Geolocation exposing (Coordinates, watchPosition)
 import Html exposing (Html, div, img, input, label, text)
 import Html.Attributes exposing (accept, attribute, hidden, src, style, type_)
 import Html.Events exposing (on)
+import Http
 import Json.Decode as D
+import Ports exposing (watchPosition)
+import Ripple exposing (Ripple)
 import Task
+import Url exposing (Url)
 
 
 type alias ImagePreviewUrl =
@@ -21,6 +25,7 @@ type alias LocalRippleImage =
 type alias Model =
     { localRipple : Maybe LocalRippleImage
     , location : Maybe Coordinates
+    , remoteRipples : List Ripple
     }
 
 
@@ -28,9 +33,14 @@ type Msg
     = SetLocalRippleImage File
     | SetLocalRippleImagePreview File ImagePreviewUrl
     | GotLocation Coordinates
+    | GotRipples (Result Http.Error (List Ripple))
 
 
-main : Program () Model Msg
+type alias Flags =
+    ()
+
+
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
@@ -40,10 +50,18 @@ main =
         }
 
 
-init : () -> ( Model, Cmd Msg )
+initModel : Model
+initModel =
+    { localRipple = Nothing
+    , location = Nothing
+    , remoteRipples = []
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
 init _ =
-    ( { localRipple = Nothing, location = Nothing }
-    , Cmd.none
+    ( initModel
+    , Ripple.getList GotRipples { longitude = 0, latitude = 0 }
     )
 
 
@@ -69,6 +87,16 @@ update msg model =
             ( { model | location = Just location }
             , Cmd.none
             )
+
+        GotRipples errOrRipples ->
+            case errOrRipples of
+                Err _ ->
+                    ( model, Cmd.none )
+
+                Ok ripples ->
+                    ( { model | remoteRipples = ripples }
+                    , Cmd.none
+                    )
 
 
 view : Model -> Html Msg
@@ -104,6 +132,9 @@ view model =
             Just image ->
                 img [ src image.preview ]
                     []
+        , text "Ripples:"
+        , div [] <|
+            List.map Ripple.view model.remoteRipples
         ]
 
 
