@@ -1,4 +1,4 @@
-module Server exposing (imgUrl, list)
+module Server exposing (imgUrl, list, upload)
 
 import Coordinates exposing (Coordinates)
 import Url exposing (Url)
@@ -31,3 +31,8 @@ list coords =
 imgUrl : String -> Url
 imgUrl imgID =
     { baseUrl | path = "/ripple/" ++ imgID }
+
+
+upload : Url
+upload =
+    { baseUrl | path = "/upload" }
