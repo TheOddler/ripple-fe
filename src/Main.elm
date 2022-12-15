@@ -89,11 +89,7 @@ view : Model -> Html Msg
 view model =
     div
         []
-        [ text <|
-            "Location: "
-                ++ String.fromFloat model.location.longitude
-                ++ " - "
-                ++ String.fromFloat model.location.latitude
+        [ text <| "Location: " ++ Coordinates.toString model.location
         , Html.map CreateRippleMsg <| CreateRipple.view model.createRipple
         , text "Ripples:"
         , div [] <|

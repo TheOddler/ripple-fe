@@ -1,4 +1,4 @@
-module Coordinates exposing (Coordinates, decoder, toJSON)
+module Coordinates exposing (Coordinates, decoder, toJSON, toString)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
@@ -31,3 +31,8 @@ toJSON coords =
         [ ( "latitude", Encode.float coords.latitude )
         , ( "longitude", Encode.float coords.longitude )
         ]
+
+
+toString : Coordinates -> String
+toString =
+    Encode.encode 0 << toJSON

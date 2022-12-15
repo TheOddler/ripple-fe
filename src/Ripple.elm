@@ -38,11 +38,7 @@ view : Ripple -> Html msg
 view ripple =
     div
         []
-        [ text <|
-            "Location: "
-                ++ String.fromFloat ripple.coordinates.longitude
-                ++ " - "
-                ++ String.fromFloat ripple.coordinates.latitude
+        [ text <| "Location: " ++ Coordinates.toString ripple.coordinates
         , img
             [ height 200
             , src <| Url.toString <| Server.imgUrl ripple.id
