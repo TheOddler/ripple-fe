@@ -40,7 +40,7 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { location = flags.startLocation
       , createRipple = CreateRipple.initModel
-      , nearbyRipples = NearbyRipples.initModel
+      , nearbyRipples = NearbyRipples.initModel flags.startLocation
       }
     , Cmd.map NearbyRipplesMsg <| NearbyRipples.initCmd flags.startLocation
     )
@@ -48,18 +48,19 @@ init flags =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.batch
-        [ watchPosition GotLocation
-        , Sub.map NearbyRipplesMsg NearbyRipples.subscriptions
-        ]
+    watchPosition GotLocation
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         GotLocation location ->
-            ( { model | location = location }
-            , Cmd.none
+            let
+                ( newModel, cmd ) =
+                    NearbyRipples.update (NearbyRipples.LocationUpdated location) model.nearbyRipples
+            in
+            ( { model | location = location, nearbyRipples = newModel }
+            , Cmd.map NearbyRipplesMsg cmd
             )
 
         CreateRippleMsg msg ->
@@ -74,7 +75,7 @@ update message model =
         NearbyRipplesMsg msg ->
             let
                 ( newModel, cmd ) =
-                    NearbyRipples.update model.location msg model.nearbyRipples
+                    NearbyRipples.update msg model.nearbyRipples
             in
             ( { model | nearbyRipples = newModel }
             , Cmd.map NearbyRipplesMsg cmd

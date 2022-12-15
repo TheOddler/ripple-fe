@@ -7,18 +7,20 @@ import Http
 import Json.Decode as Decode
 import Ripple exposing (Ripple)
 import Server
-import Time
 import Url
 
 
 type alias Model =
     { nearbyRipples : List Ripple
+    , lastUpdateLocation : Coordinates
     }
 
 
-initModel : Model
-initModel =
-    { nearbyRipples = [] }
+initModel : Coordinates -> Model
+initModel startLocation =
+    { nearbyRipples = []
+    , lastUpdateLocation = startLocation
+    }
 
 
 initCmd : Coordinates -> Cmd Msg
@@ -28,7 +30,7 @@ initCmd startLocation =
 
 type Msg
     = GotRipples (Result Http.Error (List Ripple))
-    | RefreshRipples
+    | LocationUpdated Coordinates
 
 
 seconds : Float
@@ -36,13 +38,8 @@ seconds =
     1000
 
 
-subscriptions : Sub Msg
-subscriptions =
-    Time.every (10 * seconds) (\_ -> RefreshRipples)
-
-
-update : Coordinates -> Msg -> Model -> ( Model, Cmd Msg )
-update location msg model =
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
     case msg of
         GotRipples errOrRipples ->
             case errOrRipples of
@@ -54,8 +51,13 @@ update location msg model =
                     , Cmd.none
                     )
 
-        RefreshRipples ->
-            ( model, getList GotRipples location )
+        LocationUpdated coordinates ->
+            if Coordinates.distance coordinates model.lastUpdateLocation > 0.1 then
+                -- We are far enough away that we'll update the nearby ripples
+                ( { model | lastUpdateLocation = coordinates }, getList GotRipples coordinates )
+
+            else
+                ( model, Cmd.none )
 
 
 view : Model -> Html Msg
