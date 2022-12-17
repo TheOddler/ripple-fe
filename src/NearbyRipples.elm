@@ -1,8 +1,9 @@
 module NearbyRipples exposing (..)
 
 import Coordinates exposing (Coordinates)
-import Html exposing (Html, div, img, text)
+import Html exposing (Html, button, div, img, text)
 import Html.Attributes exposing (height, src)
+import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
 import Ripple exposing (Ripple)
@@ -12,14 +13,12 @@ import Url
 
 type alias Model =
     { nearbyRipples : List Ripple
-    , lastUpdateLocation : Coordinates
     }
 
 
-initModel : Coordinates -> Model
-initModel startLocation =
+initModel : Model
+initModel =
     { nearbyRipples = []
-    , lastUpdateLocation = startLocation
     }
 
 
@@ -29,8 +28,8 @@ initCmd startLocation =
 
 
 type Msg
-    = GotRipples (Result Http.Error (List Ripple))
-    | LocationUpdated Coordinates
+    = Refresh
+    | GotRipples (Result Http.Error (List Ripple))
 
 
 seconds : Float
@@ -38,9 +37,12 @@ seconds =
     1000
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Coordinates -> Msg -> Model -> ( Model, Cmd Msg )
+update coords msg model =
     case msg of
+        Refresh ->
+            ( model, getList GotRipples coords )
+
         GotRipples errOrRipples ->
             case errOrRipples of
                 Err _ ->
@@ -51,21 +53,16 @@ update msg model =
                     , Cmd.none
                     )
 
-        LocationUpdated coordinates ->
-            if Coordinates.distance coordinates model.lastUpdateLocation > 0.1 then
-                -- We are far enough away that we'll update the nearby ripples
-                ( { model | lastUpdateLocation = coordinates }, getList GotRipples coordinates )
-
-            else
-                ( model, Cmd.none )
-
 
 view : Model -> Html Msg
 view model =
     div []
-        [ text "Ripples:"
-        , div [] <|
-            List.map viewSingle model.nearbyRipples
+        [ div [] <| List.map viewSingle model.nearbyRipples
+        , button
+            [ onClick Refresh
+            ]
+            [ text "🔄 Refresh nearby Ripples"
+            ]
         ]
 
 

@@ -3,7 +3,7 @@ module Main exposing (..)
 import Browser
 import Coordinates exposing (Coordinates)
 import CreateRipple
-import Html exposing (Html, div, li, text, ul)
+import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import NearbyRipples
@@ -50,7 +50,7 @@ init flags =
     ( { location = flags.startLocation
       , openTab = NearbyRipples
       , createRipple = CreateRipple.initModel
-      , nearbyRipples = NearbyRipples.initModel flags.startLocation
+      , nearbyRipples = NearbyRipples.initModel
       }
     , Cmd.map NearbyRipplesMsg <| NearbyRipples.initCmd flags.startLocation
     )
@@ -65,12 +65,8 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
         GotLocation location ->
-            let
-                ( newModel, cmd ) =
-                    NearbyRipples.update (NearbyRipples.LocationUpdated location) model.nearbyRipples
-            in
-            ( { model | location = location, nearbyRipples = newModel }
-            , Cmd.map NearbyRipplesMsg cmd
+            ( { model | location = location }
+            , Cmd.none
             )
 
         ChangeTab tab ->
@@ -90,7 +86,7 @@ update message model =
         NearbyRipplesMsg msg ->
             let
                 ( newModel, cmd ) =
-                    NearbyRipples.update msg model.nearbyRipples
+                    NearbyRipples.update model.location msg model.nearbyRipples
             in
             ( { model | nearbyRipples = newModel }
             , Cmd.map NearbyRipplesMsg cmd
