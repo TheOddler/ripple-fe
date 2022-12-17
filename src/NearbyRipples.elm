@@ -2,10 +2,12 @@ module NearbyRipples exposing (..)
 
 import Coordinates exposing (Coordinates)
 import Html exposing (Html, button, div, img, text)
-import Html.Attributes exposing (height, src)
+import Html.Attributes exposing (class, height, src)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
+import Json.Encode as Encode
+import List.Extra as List
 import Ripple exposing (Ripple)
 import Server
 import Url
@@ -13,12 +15,14 @@ import Url
 
 type alias Model =
     { nearbyRipples : List Ripple
+    , seenRipples : List Ripple
     }
 
 
 initModel : Model
 initModel =
     { nearbyRipples = []
+    , seenRipples = []
     }
 
 
@@ -30,6 +34,9 @@ initCmd startLocation =
 type Msg
     = Refresh
     | GotRipples (Result Http.Error (List Ripple))
+    | ReRipple Ripple
+    | GotReRippleReply (Result Http.Error ())
+    | UnRipple Ripple
 
 
 seconds : Float
@@ -53,29 +60,59 @@ update coords msg model =
                     , Cmd.none
                     )
 
+        ReRipple ripple ->
+            ( markRippleAsSeen ripple model
+            , Cmd.none
+            )
+
+        GotReRippleReply _ ->
+            ( model
+            , Cmd.none
+            )
+
+        UnRipple ripple ->
+            ( markRippleAsSeen ripple model
+            , Cmd.none
+            )
+
+
+markRippleAsSeen : Ripple -> Model -> Model
+markRippleAsSeen ripple model =
+    let
+        seenRipples =
+            ripple :: model.seenRipples
+    in
+    { model | seenRipples = seenRipples }
+
+
+unseenRipples : Model -> List Ripple
+unseenRipples model =
+    List.foldl List.remove model.nearbyRipples model.seenRipples
+
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ div [] <| List.map viewSingle model.nearbyRipples
+    div [ class "ripples" ]
+        [ div [] <| List.map viewSingle <| unseenRipples model
         , button
             [ onClick Refresh
+            , class "refresh"
             ]
-            [ text "🔄 Refresh nearby Ripples"
+            [ text "🔄 Refresh"
             ]
         ]
 
 
-viewSingle : Ripple -> Html msg
+viewSingle : Ripple -> Html Msg
 viewSingle ripple =
     div
-        []
-        [ text <| "Location: " ++ Coordinates.toString ripple.coordinates
-        , img
-            [ height 200
-            , src <| Url.toString <| Server.imgUrl ripple.id
+        [ class "ripple" ]
+        [ img
+            [ src <| Url.toString <| Server.imgUrl ripple.id
             ]
             []
+        , div [ class "re-ripple", onClick <| ReRipple ripple ] [ text "📤 Re-Ripple" ]
+        , div [ class "un-ripple", onClick <| UnRipple ripple ] [ text "❌ Un-Ripple" ]
         ]
 
 
@@ -84,4 +121,18 @@ getList msg coords =
     Http.get
         { url = Server.list coords |> Url.toString
         , expect = Http.expectJson msg (Decode.list Ripple.decoder)
+        }
+
+
+reRipple : (Result Http.Error () -> msg) -> Coordinates -> Ripple -> Cmd msg
+reRipple msg currentCoords ripple =
+    Http.post
+        { url = Server.reRipple |> Url.toString
+        , body =
+            Http.jsonBody <|
+                Encode.object
+                    [ ( "coordinates", Coordinates.toJSON currentCoords )
+                    , ( "id", Encode.string ripple.id )
+                    ]
+        , expect = Http.expectWhatever msg
         }

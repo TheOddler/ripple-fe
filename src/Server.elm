@@ -1,4 +1,4 @@
-module Server exposing (imgUrl, list, upload)
+module Server exposing (imgUrl, list, reRipple, upload)
 
 import Coordinates exposing (Coordinates)
 import Url exposing (Url)
@@ -6,6 +6,13 @@ import Url exposing (Url)
 
 baseUrl : Url
 baseUrl =
+    -- { protocol = Url.Https
+    -- , host = "ripple.cs-syd.eu"
+    -- , port_ = Nothing
+    -- , path = ""
+    -- , query = Nothing
+    -- , fragment = Nothing
+    -- }
     { protocol = Url.Http
     , host = "localhost"
     , port_ = Just 8000
@@ -36,3 +43,8 @@ imgUrl imgID =
 upload : Url
 upload =
     { baseUrl | path = "/upload" }
+
+
+reRipple : Url
+reRipple =
+    { baseUrl | path = "/re-ripple" }

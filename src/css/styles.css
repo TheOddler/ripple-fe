@@ -21,3 +21,51 @@
 .tab.active {
     background-color: rgb(208, 225, 231);
 }
+
+.ripples {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.ripples .ripple {
+    overflow: hidden;
+    margin-bottom: 10pt;
+    display: grid;
+    grid-template-areas: 
+        "img img"
+        "reripple unripple";
+    border-radius: 10pt;
+}
+
+.ripples .ripple img {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    grid-area: img;
+}
+
+
+.ripples .ripple .re-ripple {
+    text-align: center;
+    background: green;
+    grid-area: reripple;
+    font-size: 120%;
+    padding: 3pt;
+}
+
+.ripples .ripple .un-ripple {
+    text-align: center;
+    background: red;
+    grid-area: unripple;
+    font-size: 120%;
+    padding: 3pt;
+}
+
+.ripples .refresh {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    font-size: 120%;
+}
