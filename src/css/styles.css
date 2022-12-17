@@ -1,0 +1,19 @@
+.tabs {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    border-top: 1px solid black;
+}
+
+.tabs .tab {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 120%;
+    cursor: pointer;
+}
+
+.tabs .tab:hover {
+    background-color: lightblue;
+}
