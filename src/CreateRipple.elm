@@ -2,8 +2,8 @@ module CreateRipple exposing (..)
 
 import Coordinates exposing (Coordinates)
 import File exposing (File)
-import Html exposing (Html, button, div, img, input, label, text)
-import Html.Attributes exposing (accept, attribute, height, hidden, name, src, style, type_)
+import Html exposing (Html, div, img, input, label, text)
+import Html.Attributes exposing (accept, attribute, class, height, hidden, name, src, type_)
 import Html.Events exposing (on, onClick)
 import Http
 import Json.Decode as D
@@ -67,26 +67,30 @@ update location msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ viewMakeRippleButton Capture
-        , case model of
-            Nothing ->
-                text "Select an image be pressing the button above"
+    div [ class "createRipple" ]
+        [ div [ class "preview" ]
+            [ case model of
+                Nothing ->
+                    div [ class "info" ] [ text "Tap the camera icon to create a Ripple" ]
 
-            LoadingPreview _ ->
-                text "Loading preview..."
+                LoadingPreview _ ->
+                    div [ class "info" ] [ text "Loading preview..." ]
 
-            Ready _ preview ->
-                img [ src preview, height 300 ] []
-        , case model of
-            Nothing ->
-                text ""
+                Ready _ preview ->
+                    img [ src preview, height 300 ] []
+            ]
+        , div [ class "overlay" ]
+            [ viewMakeRippleButton Capture
+            , case model of
+                Nothing ->
+                    text ""
 
-            LoadingPreview _ ->
-                text ""
+                LoadingPreview file ->
+                    viewRippleUploadButton file
 
-            Ready file _ ->
-                viewRippleUploadButton file
+                Ready file _ ->
+                    viewRippleUploadButton file
+            ]
         ]
 
 
@@ -97,7 +101,7 @@ type RippleMethod
 
 viewMakeRippleButton : RippleMethod -> Html Msg
 viewMakeRippleButton rippleMethod =
-    label [] <|
+    label [ class "button" ] <|
         let
             baseAttrs =
                 [ type_ "file"
@@ -119,8 +123,7 @@ viewMakeRippleButton rippleMethod =
             )
             []
         , div
-            [ style "font-size" "100pt"
-            ]
+            []
             [ text <|
                 case rippleMethod of
                     Select ->
@@ -134,9 +137,11 @@ viewMakeRippleButton rippleMethod =
 
 viewRippleUploadButton : File -> Html Msg
 viewRippleUploadButton file =
-    button
-        [ onClick <| Upload file ]
-        [ text "Upload"
+    div
+        [ class "button"
+        , onClick <| Upload file
+        ]
+        [ text "📤"
         ]
 
 

@@ -1,5 +1,7 @@
 .app {
-    margin-bottom: 20pt; /* space for tabs */
+    padding-bottom: 20pt; /* space for tabs */
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .tabs {
@@ -66,6 +68,7 @@
     align-items: center;
     justify-content: center;
     margin: 5pt;
+    cursor: pointer;
 }
 
 .ripples .ripple .re-ripple {
@@ -82,4 +85,38 @@
     left: 50%;
     transform: translate(-50%, 0);
     font-size: 120%;
+}
+
+.createRipple {
+    height: 100%;
+}
+
+.createRipple .preview {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: start;
+}
+
+.createRipple .preview img {
+    width: 100%;
+    height: auto;
+}
+
+.createRipple .overlay {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: end;
+}
+
+.createRipple .overlay .button {
+    font-size: 50pt;
+    margin-bottom: 20pt;
+    cursor: pointer;
 }
