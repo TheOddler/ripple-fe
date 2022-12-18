@@ -96,7 +96,7 @@ update message model =
 view : Model -> Html Msg
 view model =
     div
-        []
+        [ class "app" ]
         [ div [ class "tabs" ]
             [ viewTab model NearbyRipples
             , viewTab model CreateRipple

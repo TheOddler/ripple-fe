@@ -1,3 +1,7 @@
+.app {
+    margin-bottom: 20pt; /* space for tabs */
+}
+
 .tabs {
     position: fixed;
     bottom: 0;
@@ -5,6 +9,7 @@
     display: flex;
     justify-content: space-evenly;
     border-top: 1px solid black;
+    z-index: 100;
 }
 
 .tabs .tab {
@@ -12,6 +17,7 @@
     text-align: center;
     font-size: 120%;
     cursor: pointer;
+    background-color: white;
 }
 
 .tabs .tab:hover {
@@ -28,38 +34,46 @@
     flex-direction: column;
 }
 
-.ripples .ripple {
+.ripple {
+    position: relative;
     overflow: hidden;
-    margin-bottom: 10pt;
-    display: grid;
-    grid-template-areas: 
-        "img img"
-        "reripple unripple";
-    border-radius: 10pt;
+    border-radius: 15pt;
+    margin: 20pt 5pt;
 }
 
-.ripples .ripple img {
+.ripple img {
     width: 100%;
-    margin: 0;
-    padding: 0;
-    grid-area: img;
+    display: block; /* needed to remove few extra pixels under the image */
 }
 
+.ripple .overlay {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ripple .overlay .button {
+    width: 30pt;
+    height: 30pt;
+    border-radius: 100%;
+    text-align: center;
+    font-size: 20pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 5pt;
+}
 
 .ripples .ripple .re-ripple {
-    text-align: center;
     background: green;
-    grid-area: reripple;
-    font-size: 120%;
-    padding: 3pt;
 }
 
 .ripples .ripple .un-ripple {
-    text-align: center;
-    background: red;
-    grid-area: unripple;
-    font-size: 120%;
-    padding: 3pt;
+    background: #700;
 }
 
 .ripples .refresh {

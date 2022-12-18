@@ -2,7 +2,7 @@ module NearbyRipples exposing (..)
 
 import Coordinates exposing (Coordinates)
 import Html exposing (Html, button, div, img, text)
-import Html.Attributes exposing (class, height, src)
+import Html.Attributes exposing (class, src)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
@@ -111,8 +111,10 @@ viewSingle ripple =
             [ src <| Url.toString <| Server.imgUrl ripple.id
             ]
             []
-        , div [ class "re-ripple", onClick <| ReRipple ripple ] [ text "📤 Re-Ripple" ]
-        , div [ class "un-ripple", onClick <| UnRipple ripple ] [ text "❌ Un-Ripple" ]
+        , div [ class "overlay" ]
+            [ div [ class "button re-ripple", onClick <| ReRipple ripple ] [ text "📤" ]
+            , div [ class "button un-ripple", onClick <| UnRipple ripple ] [ text "❌" ]
+            ]
         ]
 
 
