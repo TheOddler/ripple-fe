@@ -48,7 +48,7 @@ update location msg model =
             )
 
         Upload image ->
-            ( model
+            ( Nothing
             , Http.post
                 { url = Url.toString Server.upload
                 , body =
