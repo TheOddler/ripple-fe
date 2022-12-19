@@ -1,5 +1,6 @@
 .app {
-    padding-bottom: 20pt; /* space for tabs */
+    padding-bottom: 20pt;
+    /* space for tabs */
     height: 100%;
     box-sizing: border-box;
 }
@@ -45,7 +46,8 @@
 
 .ripple img {
     width: 100%;
-    display: block; /* needed to remove few extra pixels under the image */
+    display: block;
+    /* needed to remove few extra pixels under the image */
 }
 
 .ripple .overlay {
@@ -72,11 +74,11 @@
 }
 
 .ripples .ripple .re-ripple {
-    background: green;
+    background: #48c78e;
 }
 
 .ripples .ripple .un-ripple {
-    background: #700;
+    background: #f14668;
 }
 
 .ripples .refresh {

@@ -3,21 +3,14 @@ module Main exposing (..)
 import Browser
 import Coordinates exposing (Coordinates)
 import CreateRipple
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, classList)
-import Html.Events exposing (onClick)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class)
 import NearbyRipples
 import Ports exposing (watchPosition)
 
 
-type Tab
-    = NearbyRipples
-    | CreateRipple
-
-
 type alias Model =
     { location : Coordinates
-    , openTab : Tab
     , createRipple : CreateRipple.Model
     , nearbyRipples : NearbyRipples.Model
     }
@@ -25,7 +18,7 @@ type alias Model =
 
 type Msg
     = GotLocation Coordinates
-    | ChangeTab Tab
+    | StartCreatingRipple
     | CreateRippleMsg CreateRipple.Msg
     | NearbyRipplesMsg NearbyRipples.Msg
 
@@ -48,7 +41,6 @@ main =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { location = flags.startLocation
-      , openTab = NearbyRipples
       , createRipple = CreateRipple.initModel
       , nearbyRipples = NearbyRipples.initModel
       }
@@ -69,8 +61,8 @@ update message model =
             , Cmd.none
             )
 
-        ChangeTab tab ->
-            ( { model | openTab = tab }
+        StartCreatingRipple ->
+            ( model
             , Cmd.none
             )
 
@@ -97,37 +89,6 @@ view : Model -> Html Msg
 view model =
     div
         [ class "app" ]
-        [ div [ class "tabs" ]
-            [ viewTab model NearbyRipples
-            , viewTab model CreateRipple
-            ]
-        , case model.openTab of
-            NearbyRipples ->
-                Html.map NearbyRipplesMsg <| NearbyRipples.view model.nearbyRipples
-
-            CreateRipple ->
-                Html.map CreateRippleMsg <| CreateRipple.view model.createRipple
-        ]
-
-
-tabLabel : Tab -> String
-tabLabel tab =
-    case tab of
-        NearbyRipples ->
-            "🗺️ Nearby"
-
-        CreateRipple ->
-            "🎨 Create"
-
-
-viewTab : Model -> Tab -> Html Msg
-viewTab model tab =
-    div
-        [ classList
-            [ ( "tab", True )
-            , ( "active", model.openTab == tab )
-            ]
-        , onClick <| ChangeTab tab
-        ]
-        [ text <| tabLabel tab
+        [ Html.map NearbyRipplesMsg <| NearbyRipples.view model.nearbyRipples
+        , Html.map CreateRippleMsg <| CreateRipple.view model.createRipple
         ]

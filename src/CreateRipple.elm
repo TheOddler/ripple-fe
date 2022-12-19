@@ -1,12 +1,16 @@
-module CreateRipple exposing (..)
+module CreateRipple exposing (Model, Msg, initModel, update, view)
 
 import Coordinates exposing (Coordinates)
 import File exposing (File)
-import Html exposing (Html, div, img, input, label, text)
-import Html.Attributes exposing (accept, attribute, class, height, hidden, name, src, type_)
-import Html.Events exposing (on, onClick)
+import Html exposing (Html, div, img, input, label)
+import Html.Attributes exposing (accept, attribute, class, hidden, name, src, style, type_)
+import Html.Events exposing (on)
 import Http
 import Json.Decode as D
+import Material.Button as Button
+import Material.Dialog as Dialog
+import Material.Fab as Fab
+import Maybe.Extra as Maybe
 import Server
 import Task
 import Url
@@ -17,18 +21,19 @@ type alias ImagePreviewUrl =
 
 
 type Model
-    = Nothing
+    = Closed
     | LoadingPreview File
     | Ready File ImagePreviewUrl
 
 
 initModel : Model
 initModel =
-    Nothing
+    Closed
 
 
 type Msg
-    = SetImage File
+    = Reset
+    | SetImage File
     | LoadedImagePreview File ImagePreviewUrl
     | Upload File
     | UploadDone (Result Http.Error ())
@@ -37,6 +42,11 @@ type Msg
 update : Coordinates -> Msg -> Model -> ( Model, Cmd Msg )
 update location msg model =
     case msg of
+        Reset ->
+            ( Closed
+            , Cmd.none
+            )
+
         SetImage image ->
             ( LoadingPreview image
             , Task.perform (LoadedImagePreview image) (File.toUrl image)
@@ -48,7 +58,7 @@ update location msg model =
             )
 
         Upload image ->
-            ( Nothing
+            ( Closed
             , Http.post
                 { url = Url.toString Server.upload
                 , body =
@@ -67,31 +77,19 @@ update location msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "createRipple" ]
-        [ div [ class "preview" ]
-            [ case model of
-                Nothing ->
-                    div [ class "info" ] [ text "Tap the camera icon to create a Ripple" ]
+    div [ class "createRipple" ] <|
+        Maybe.values
+            [ Just <| viewCreateButton Capture
+            , case model of
+                Closed ->
+                    Nothing
 
                 LoadingPreview _ ->
-                    div [ class "info" ] [ text "Loading preview..." ]
+                    Nothing
 
-                Ready _ preview ->
-                    img [ src preview, height 300 ] []
+                Ready file preview ->
+                    Just <| viewCreateDialog file preview
             ]
-        , div [ class "overlay" ]
-            [ viewMakeRippleButton Capture
-            , case model of
-                Nothing ->
-                    text ""
-
-                LoadingPreview file ->
-                    viewRippleUploadButton file
-
-                Ready file _ ->
-                    viewRippleUploadButton file
-            ]
-        ]
 
 
 type RippleMethod
@@ -99,8 +97,8 @@ type RippleMethod
     | Capture
 
 
-viewMakeRippleButton : RippleMethod -> Html Msg
-viewMakeRippleButton rippleMethod =
+viewCreateButton : RippleMethod -> Html Msg
+viewCreateButton rippleMethod =
     label [ class "button" ] <|
         let
             baseAttrs =
@@ -122,29 +120,47 @@ viewMakeRippleButton rippleMethod =
                     attribute "capture" "environment" :: baseAttrs
             )
             []
-        , div
-            []
-            [ text <|
-                case rippleMethod of
-                    Select ->
-                        "📂"
-
-                    Capture ->
-                        "📸"
-            ]
-        ]
-
-
-viewRippleUploadButton : File -> Html Msg
-viewRippleUploadButton file =
-    div
-        [ class "button"
-        , onClick <| Upload file
-        ]
-        [ text "📤"
+        , Fab.fab
+            (Fab.config
+                |> Fab.setAttributes
+                    [ style "position" "fixed"
+                    , style "bottom" "2rem"
+                    , style "right" "2rem"
+                    ]
+            )
+            (Fab.icon "add")
         ]
 
 
 inputFileDecoder : D.Decoder File
 inputFileDecoder =
     D.at [ "target", "files" ] (D.oneOrMore (\first _ -> first) File.decoder)
+
+
+viewCreateDialog : File -> ImagePreviewUrl -> Html Msg
+viewCreateDialog file preview =
+    Dialog.alert
+        (Dialog.config
+            |> Dialog.setOpen True
+            |> Dialog.setOnClose Reset
+        )
+        { content =
+            [ img
+                [ src preview
+                , style "max-height" "100%"
+                , style "max-width" "100%"
+                ]
+                []
+            ]
+        , actions =
+            [ Button.text
+                (Button.config |> Button.setOnClick Reset)
+                "Cancel"
+            , Button.text
+                (Button.config
+                    |> Button.setOnClick (Upload file)
+                    |> Button.setAttributes [ Dialog.defaultAction ]
+                )
+                "Share"
+            ]
+        }

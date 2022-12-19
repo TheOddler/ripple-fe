@@ -1,13 +1,18 @@
-module NearbyRipples exposing (..)
+module NearbyRipples exposing (Model, Msg, initCmd, initModel, update, view)
 
 import Coordinates exposing (Coordinates)
-import Html exposing (Html, button, div, img, text)
-import Html.Attributes exposing (class, src)
+import Html exposing (Html, div, img)
+import Html.Attributes exposing (src, style)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import List.Extra as List
+import Material.Button as Button
+import Material.Dialog as Dialog
+import Material.ImageList as ImageList
+import Material.ImageList.Item as ImageListItem exposing (ImageListItem)
+import Maybe.Extra as Maybe
 import Ripple exposing (Ripple)
 import Server
 import Url
@@ -16,6 +21,7 @@ import Url
 type alias Model =
     { nearbyRipples : List Ripple
     , seenRipples : List Ripple
+    , selectedRipple : Maybe Ripple
     }
 
 
@@ -23,6 +29,7 @@ initModel : Model
 initModel =
     { nearbyRipples = []
     , seenRipples = []
+    , selectedRipple = Nothing
     }
 
 
@@ -34,14 +41,11 @@ initCmd startLocation =
 type Msg
     = Refresh
     | GotRipples (Result Http.Error (List Ripple))
+    | Deselect
+    | Select Ripple
     | ReRipple Ripple
     | GotReRippleReply (Result Http.Error ())
     | UnRipple Ripple
-
-
-seconds : Float
-seconds =
-    1000
 
 
 update : Coordinates -> Msg -> Model -> ( Model, Cmd Msg )
@@ -60,9 +64,19 @@ update coords msg model =
                     , Cmd.none
                     )
 
-        ReRipple ripple ->
-            ( markRippleAsSeen ripple model
+        Deselect ->
+            ( { model | selectedRipple = Nothing }
             , Cmd.none
+            )
+
+        Select ripple ->
+            ( { model | selectedRipple = Just ripple }
+            , Cmd.none
+            )
+
+        ReRipple ripple ->
+            ( markRippleAsSeen ripple { model | selectedRipple = Nothing }
+            , reRipple GotReRippleReply coords ripple
             )
 
         GotReRippleReply _ ->
@@ -71,7 +85,7 @@ update coords msg model =
             )
 
         UnRipple ripple ->
-            ( markRippleAsSeen ripple model
+            ( markRippleAsSeen ripple { model | selectedRipple = Nothing }
             , Cmd.none
             )
 
@@ -92,30 +106,59 @@ unseenRipples model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "ripples" ]
-        [ div [] <| List.map viewSingle <| unseenRipples model
-        , button
-            [ onClick Refresh
-            , class "refresh"
+    div [] <|
+        Maybe.values
+            [ Just <|
+                ImageList.imageList ImageList.config <|
+                    List.map viewListElement (unseenRipples model)
+            , Maybe.map viewOptionsDialog model.selectedRipple
             ]
-            [ text "🔄 Refresh"
-            ]
-        ]
 
 
-viewSingle : Ripple -> Html Msg
-viewSingle ripple =
-    div
-        [ class "ripple" ]
-        [ img
-            [ src <| Url.toString <| Server.imgUrl ripple.id
+viewListElement : Ripple -> ImageListItem Msg
+viewListElement ripple =
+    ImageListItem.imageListItem
+        (ImageListItem.config
+            |> ImageListItem.setAttributes
+                [ style "width" "calc(100% / 2 - 4pt)"
+                , style "margin" "2pt"
+                , style "cursor" "pointer"
+                , onClick <| Select ripple
+                ]
+        )
+        (Url.toString <| Server.imgUrl ripple.id)
+
+
+viewOptionsDialog : Ripple -> Html Msg
+viewOptionsDialog ripple =
+    Dialog.alert
+        (Dialog.config
+            |> Dialog.setOpen True
+            |> Dialog.setOnClose Deselect
+        )
+        { content =
+            [ img
+                [ src <| Url.toString <| Server.imgUrl ripple.id
+                , style "max-height" "100%"
+                , style "max-width" "100%"
+                ]
+                []
             ]
-            []
-        , div [ class "overlay" ]
-            [ div [ class "button re-ripple", onClick <| ReRipple ripple ] [ text "📤" ]
-            , div [ class "button un-ripple", onClick <| UnRipple ripple ] [ text "❌" ]
+        , actions =
+            [ Button.text
+                (Button.config |> Button.setOnClick Deselect)
+                "Cancel"
+            , Button.text
+                (Button.config |> Button.setOnClick (UnRipple ripple))
+                "Delete"
+            , Button.text
+                (Button.config
+                    |> Button.setOnClick (ReRipple ripple)
+                    |> Button.setAttributes [ Dialog.defaultAction ]
+                )
+                "Re-Ripple"
             ]
-        ]
+        }
 
 
 getList : (Result Http.Error (List Ripple) -> msg) -> Coordinates -> Cmd msg
